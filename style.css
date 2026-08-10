@@ -857,13 +857,14 @@ input:checked+.slider:before {
     height: auto;
     min-height: 100vh;
     justify-content: center;
-    padding: 15px 10px;
+    padding: 28px 10px 15px 10px;
   }
   
   .device-frame {
     width: 100%;
     max-width: 100%;
     height: auto;
+    margin-top: 10px;
   }
 
   .leaderboard-list-wrapper {
