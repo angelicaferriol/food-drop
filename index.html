@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jonigiri! Food Drop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=1.0.8">
+</head>
+<body>
+  <div class="game-wrapper">
+    <!-- Desktop/Mobile device container frame mimicking the picture -->
+    <div class="device-frame ratio-tall">
+      <div class="device-screen">
+        
+        <!-- Welcome / Start Screen -->
+        <div id="screen-welcome" class="screen active">
+          <div class="logo-container">
+            <img src="assets/logo.png" alt="JONIGIRI! Food Drop" class="game-logo-img">
+          </div>
+          <div class="character-preview">
+            <img src="assets/stripes/idle.png" alt="Jojo" id="welcome-char">
+          </div>
+          <div class="welcome-buttons">
+            <button id="btn-start" class="btn-image-action animate-bounce">
+              <img src="assets/buttons/start.png" alt="START!">
+            </button>
+          </div>
+        </div>
+
+        <!-- Game Play Screen -->
+        <div id="screen-game" class="screen">
+          <div class="game-hud">
+            <button id="btn-pause" class="btn-image-circle-small">
+              <img src="assets/buttons/pause.png" alt="Pause">
+            </button>
+            <div class="score-display">
+              <span id="score-val">0</span>
+            </div>
+          </div>
+          
+          <div class="game-container-relative">
+            <canvas id="game-canvas"></canvas>
+            
+            <!-- Stamina Tank on the Right -->
+            <div class="miss-gauge-container">
+              <div class="stamina-tank-wrapper">
+                <div id="stamina-fill" class="stamina-fill"></div>
+                <img src="assets/stamina-tank.png" alt="Stamina Tank" class="stamina-tank-img">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="screen-gameover" class="screen">
+          <div class="gameover-spacer"></div>
+          <div class="gameover-char-container">
+            <img src="assets/cry.png" alt="Jojo" id="gameover-char" class="gameover-char-img">
+          </div>
+          
+          <!-- Submit Score Area & Buttons -->
+          <div class="gameover-controls">
+            <div class="submit-score-container">
+              <input type="text" id="player-name" placeholder="" maxlength="10">
+              <button id="btn-save-score" class="btn-save-score-transparent"></button>
+            </div>
+            <button id="btn-restart" class="btn-image-action">
+              <img src="assets/buttons/try-again.png" alt="TRY AGAIN!">
+            </button>
+          </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="screen-leaderboard" class="screen">
+          
+          <div class="leaderboard-list-wrapper">
+            <ol id="leaderboard-list">
+              <!-- Dynamically populated up to 15 entries -->
+            </ol>
+          </div>
+
+          <div class="leaderboard-buttons">
+            <button id="btn-leaderboard-play" class="btn-image-action">
+              <img src="assets/buttons/play-again.png" alt="PLAY AGAIN!">
+            </button>
+            <button id="btn-leaderboard-home" class="btn-image-action">
+              <img src="assets/buttons/backhome.png" alt="Back Home">
+            </button>
+          </div>
+        </div>
+
+        <!-- Pause Menu Overlay -->
+        <div id="overlay-pause" class="overlay">
+          <div class="pause-card">
+            <div class="pause-buttons">
+              <button id="btn-resume" class="btn-image-action">
+                <img src="assets/buttons/continue.png" alt="Continue">
+              </button>
+              <button id="btn-pause-home" class="btn-image-action">
+                <img src="assets/buttons/backhome.png" alt="Back Home">
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Modal Overlay -->
+        <div id="overlay-settings" class="overlay">
+          <div class="overlay-card">
+            <h2>Settings</h2>
+            <div class="settings-option">
+              <span class="setting-label">Sound Effects</span>
+              <label class="switch">
+                <input type="checkbox" id="setting-sound" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="settings-option">
+              <span class="setting-label">Control Type</span>
+              <select id="setting-controls">
+                <option value="drag">Drag / Slide</option>
+                <option value="teleport">Tap / Teleport</option>
+                <option value="keyboard">Keyboard Keys</option>
+              </select>
+            </div>
+            <div class="overlay-buttons">
+              <button id="btn-settings-close-confirm" class="btn-primary">Close</button>
+            </div>
+          </div>
+        </div>
+
+    </div>
+    <div class="disclaimer-text">
+      This app is developed for fun only by <a href="https://x.com/onagirin" target="_blank" rel="noopener noreferrer">Rin</a>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
