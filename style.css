@@ -50,8 +50,8 @@ body {
 .device-frame {
   width: 100%;
   height: auto;
-  max-height: 82vh;
-  max-height: 82dvh;
+  max-height: 72vh;
+  max-height: 72dvh;
   max-width: 100%;
   display: flex;
   flex-direction: column;
@@ -66,10 +66,14 @@ body {
 
 .device-frame.ratio-tall {
   aspect-ratio: 1125 / 1238;
+  max-width: min(100%, calc(72vh * 1125 / 1238));
+  max-width: min(100%, calc(72dvh * 1125 / 1238));
 }
 
 .device-frame.ratio-square {
   aspect-ratio: 1145 / 1138;
+  max-width: min(100%, calc(72vh * 1145 / 1138));
+  max-width: min(100%, calc(72dvh * 1145 / 1138));
 }
 
 /* The main content area */
@@ -769,7 +773,7 @@ input:checked+.slider:before {
 
 .pause-buttons .btn-image-action img {
   width: 100%;
-  max-width: 150px;
+  max-width: 120px;
   height: auto;
   display: block;
 }
@@ -861,13 +865,17 @@ input:checked+.slider:before {
     height: auto;
     min-height: 100vh;
     justify-content: center;
-    padding: 15px 10px;
+    padding: 10px 8px;
   }
   
-  .device-frame {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
+  .device-frame.ratio-tall {
+    max-width: min(100%, calc(72vh * 1125 / 1238));
+    max-width: min(100%, calc(72dvh * 1125 / 1238));
+  }
+
+  .device-frame.ratio-square {
+    max-width: min(100%, calc(72vh * 1145 / 1138));
+    max-width: min(100%, calc(72dvh * 1145 / 1138));
   }
 
   .leaderboard-list-wrapper {
