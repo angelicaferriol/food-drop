@@ -322,26 +322,110 @@ function hideOverlay(overlayKey) {
   }
 }
 
-// --- Leaderboard functionality ---
-function getLeaderboard() {
-  const data = localStorage.getItem('jonigiri_leaderboard');
-  return data ? JSON.parse(data) : [
-    // Empty for now
-  ];
+// --- Supabase Configuration ---
+let supabaseClient = null;
+
+async function initSupabase() {
+  if (typeof supabase === 'undefined') return;
+  try {
+    let url, key;
+    
+    // 1. Try to fetch configuration from Vercel Serverless Function
+    try {
+      const response = await fetch('/api/config');
+      if (response.ok) {
+        const config = await response.json();
+        url = config.supabaseUrl;
+        key = config.supabaseAnonKey;
+      }
+    } catch (e) {
+      // Ignored: fallback to .env
+    }
+
+    // 2. Fallback to local .env file
+    if (!url || !key) {
+      try {
+        const response = await fetch('.env');
+        if (response.ok) {
+          const text = await response.text();
+          const env = {};
+          text.split('\n').forEach(line => {
+            const parts = line.split('=');
+            if (parts.length >= 2) {
+              const k = parts[0].trim();
+              const v = parts.slice(1).join('=').trim().replace(/^['"]|['"]$/g, '');
+              env[k] = v;
+            }
+          });
+          url = env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || env.VITE_SUPABASE_URL;
+          key = env.SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
+        }
+      } catch (e) {
+        // Ignored
+      }
+    }
+
+    if (url && key) {
+      supabaseClient = supabase.createClient(url, key);
+    }
+  } catch (e) {
+    console.error("Failed to initialize Supabase:", e);
+  }
 }
 
-function saveLeaderboard(name, score) {
-  if (!name.trim()) return;
-  const list = getLeaderboard();
+// --- Leaderboard functionality ---
+function getLocalLeaderboard() {
+  const data = localStorage.getItem('jonigiri_leaderboard');
+  return data ? JSON.parse(data) : [];
+}
+
+function saveLocalLeaderboard(name, score) {
+  const list = getLocalLeaderboard();
   list.push({ name: name.trim(), score: parseInt(score) });
   list.sort((a, b) => b.score - a.score);
   list.splice(15);
   localStorage.setItem('jonigiri_leaderboard', JSON.stringify(list));
 }
 
-function renderLeaderboard() {
+async function getLeaderboard() {
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('leaderboard')
+        .select('name, score')
+        .order('score', { ascending: false })
+        .limit(15);
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.warn("Supabase fetch failed, falling back to localStorage:", e);
+    }
+  }
+  return getLocalLeaderboard();
+}
+
+async function saveLeaderboard(name, score) {
+  if (!name.trim()) return;
+
+  // Always save locally as backup
+  saveLocalLeaderboard(name, score);
+
+  if (supabaseClient) {
+    try {
+      const { error } = await supabaseClient
+        .from('leaderboard')
+        .insert([{ name: name.trim(), score: parseInt(score) }]);
+      if (error) throw error;
+    } catch (e) {
+      console.error("Supabase insert failed:", e);
+    }
+  }
+}
+
+async function renderLeaderboard() {
+  leaderboardList.innerHTML = '<li class="leaderboard-item" style="justify-content: center;">Loading...</li>';
+  const list = await getLeaderboard();
   leaderboardList.innerHTML = '';
-  const list = getLeaderboard();
   list.forEach((item, index) => {
     const li = document.createElement('li');
     li.className = 'leaderboard-item';
@@ -693,9 +777,9 @@ function initEvents() {
 
   const btnLeaderboardOpen = document.getElementById('btn-leaderboard-open');
   if (btnLeaderboardOpen) {
-    btnLeaderboardOpen.addEventListener('click', () => {
+    btnLeaderboardOpen.addEventListener('click', async () => {
       soundManager.playBtnClick();
-      renderLeaderboard();
+      await renderLeaderboard();
       showScreen('leaderboard');
     });
   }
@@ -742,11 +826,11 @@ function initEvents() {
   }
 
   // Save Score
-  document.getElementById('btn-save-score').addEventListener('click', () => {
+  document.getElementById('btn-save-score').addEventListener('click', async () => {
     const name = playerNameInput.value || 'Player';
-    saveLeaderboard(name, currentScore);
+    await saveLeaderboard(name, currentScore);
     playerNameInput.value = '';
-    renderLeaderboard();
+    await renderLeaderboard();
     showScreen('leaderboard');
   });
 
@@ -796,9 +880,11 @@ function initEvents() {
 }
 
 // --- Initialize App ---
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   canvas = document.getElementById('game-canvas');
   ctx = canvas.getContext('2d');
+
+  await initSupabase();
 
   preloadAssets(() => {
     initEvents();
