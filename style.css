@@ -58,9 +58,6 @@ body {
   position: relative;
   border-radius: 28px;
   container-type: inline-size;
-  /* Fix WebKit/Safari overflow-hidden border-radius bug */
-  transform: translateZ(0);
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
 .device-frame.ratio-tall {
@@ -79,10 +76,6 @@ body {
   display: flex;
   flex-direction: column;
   background-color: transparent;
-  /* Fix WebKit/Safari overflow-hidden border-radius bug */
-  border-radius: 24px;
-  transform: translateZ(0);
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
 /* Screen base class with specific backgrounds */
@@ -604,10 +597,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(77, 47, 18, 0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border-radius: 24px;
+  background: rgba(77, 47, 18, 0.45);
   z-index: 100;
   display: none;
   justify-content: center;
@@ -861,22 +851,13 @@ input:checked+.slider:before {
     height: auto;
     min-height: 100vh;
     justify-content: center;
-    padding: 10px 8px;
+    padding: 15px 10px;
   }
   
   .device-frame {
-    max-height: 50vh;
-    max-height: 50dvh;
-  }
-
-  .device-frame.ratio-tall {
-    max-width: min(100%, calc(50vh * 1125 / 1238));
-    max-width: min(100%, calc(50dvh * 1125 / 1238));
-  }
-
-  .device-frame.ratio-square {
-    max-width: min(100%, calc(50vh * 1145 / 1138));
-    max-width: min(100%, calc(50dvh * 1145 / 1138));
+    width: 100%;
+    max-width: 100%;
+    height: auto;
   }
 
   .leaderboard-list-wrapper {
