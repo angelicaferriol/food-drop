@@ -118,6 +118,7 @@ body {
 
 #screen-leaderboard {
   background-image: url('assets/backgrounds/leaderboard.png');
+  padding: 5% 5% 5% 5%;
 }
 
 @keyframes fadeIn {
@@ -513,8 +514,8 @@ body {
   background: transparent;
   border: none;
   box-shadow: none;
-  margin-top: 20%;
-  margin-bottom: 18%;
+  margin-top: 24.5%;
+  margin-bottom: 15.5%;
   padding: 0 16%;
   overflow-y: auto;
 }
@@ -527,7 +528,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.8cqw 2.4cqw;
+  padding: 1.4cqw 2.4cqw;
   border-bottom: 2px dashed rgba(77, 47, 18, 0.15);
   font-weight: 700;
   font-size: 3.3cqw;
@@ -859,7 +860,7 @@ input:checked+.slider:before {
     justify-content: center;
     padding: 28px 10px 15px 10px;
   }
-  
+
   .device-frame {
     width: 100%;
     max-width: 100%;
@@ -867,9 +868,13 @@ input:checked+.slider:before {
     margin-top: 10px;
   }
 
+  #screen-leaderboard {
+    padding: 5% 5% 5% 5%;
+  }
+
   .leaderboard-list-wrapper {
-    margin-top: 20%;
-    margin-bottom: 18%;
+    margin-top: 24.5%;
+    margin-bottom: 15.5%;
     padding: 0 16%;
   }
 

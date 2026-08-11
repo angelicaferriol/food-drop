@@ -383,7 +383,7 @@ function saveLocalLeaderboard(name, score) {
   const list = getLocalLeaderboard();
   list.push({ name: name.trim(), score: parseInt(score) });
   list.sort((a, b) => b.score - a.score);
-  list.splice(15);
+  list.splice(100);
   localStorage.setItem('jonigiri_leaderboard', JSON.stringify(list));
 }
 
@@ -394,7 +394,7 @@ async function getLeaderboard() {
         .from('leaderboard')
         .select('name, score')
         .order('score', { ascending: false })
-        .limit(15);
+        .limit(100);
       if (error) throw error;
       return data;
     } catch (e) {
