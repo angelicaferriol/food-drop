@@ -7,13 +7,23 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1.0.8">
+  <link rel="stylesheet" href="style.css?v=1.0.9">
 </head>
 <body>
   <div class="game-wrapper">
     <!-- Desktop/Mobile device container frame mimicking the picture -->
     <div class="device-frame ratio-tall">
       <div class="device-screen">
+        <!-- Leaderboard Unavailable Toast Notification -->
+        <div id="leaderboard-toast" class="leaderboard-toast" role="status" aria-live="polite">
+          <div class="toast-body">
+            <span class="toast-icon">⚠️</span>
+            <div class="toast-msg">
+              <div class="toast-title">Leaderboard is temporarily unavailable</div>
+              <div class="toast-desc">Online rankings are offline due to inactivity. Scores are saved locally!</div>
+            </div>
+          </div>
+        </div>
         
         <!-- Welcome / Start Screen -->
         <div id="screen-welcome" class="screen active">
@@ -26,6 +36,10 @@
           <div class="welcome-buttons">
             <button id="btn-start" class="btn-image-action animate-bounce">
               <img src="assets/buttons/start.png" alt="START!">
+            </button>
+            <button id="btn-leaderboard-open" class="btn-leaderboard-toggle" title="View Leaderboard">
+              <span class="btn-icon">🏆</span>
+              <span class="btn-text">Leaderboard</span>
             </button>
           </div>
         </div>
@@ -63,12 +77,21 @@
           
           <!-- Submit Score Area & Buttons -->
           <div class="gameover-controls">
-            <div class="submit-score-container">
-              <input type="text" id="player-name" placeholder="Enter your name" maxlength="10">
-              <button id="btn-save-score" class="btn-save-score-transparent"></button>
+            <div id="gameover-leaderboard-note" class="leaderboard-unavailable-tag">
+              <span>⚠️ Leaderboard is temporarily unavailable</span>
             </div>
-            <button id="btn-restart" class="btn-image-action">
-              <img src="assets/buttons/try-again.png" alt="TRY AGAIN!">
+            <div class="gameover-buttons-row">
+              <div class="submit-score-container">
+                <input type="text" id="player-name" placeholder="Enter your name" maxlength="10">
+                <button id="btn-save-score" class="btn-save-score-transparent" title="Save Score"></button>
+              </div>
+              <button id="btn-restart" class="btn-image-action">
+                <img src="assets/buttons/try-again.png" alt="TRY AGAIN!">
+              </button>
+            </div>
+            <button id="btn-leaderboard-gameover" class="btn-leaderboard-toggle" title="View Leaderboard">
+              <span class="btn-icon">🏆</span>
+              <span class="btn-text">Leaderboard</span>
             </button>
           </div>
         </div>
@@ -138,6 +161,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=1.0.1"></script>
+  <script src="app.js?v=1.0.2"></script>
 </body>
 </html>

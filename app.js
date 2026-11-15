@@ -324,15 +324,101 @@ function hideOverlay(overlayKey) {
 
 // --- Supabase Configuration ---
 let supabaseClient = null;
+let isLeaderboardAvailable = false;
+let toastTimeout = null;
+
+function setLeaderboardAvailability(available) {
+  isLeaderboardAvailable = available;
+  const gameoverNote = document.getElementById('gameover-leaderboard-note');
+  if (gameoverNote) {
+    gameoverNote.classList.toggle('hidden', available);
+  }
+}
+
+function showLeaderboardNotice(message, subtitle) {
+  const toast = document.getElementById('leaderboard-toast');
+  if (!toast) return;
+
+  const titleEl = toast.querySelector('.toast-title');
+  const descEl = toast.querySelector('.toast-desc');
+
+  if (titleEl) {
+    titleEl.textContent = message || 'Leaderboard is temporarily unavailable';
+  }
+  if (descEl) {
+    descEl.textContent = subtitle || 'Online rankings are offline due to inactivity. Scores are saved locally!';
+  }
+
+  toast.classList.add('show');
+
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+  }
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove('show');
+    toastTimeout = null;
+  }, 4000);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function fetchWithTimeout(resource, timeoutMs = 2500) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(resource, { signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+function withTimeout(promise, timeoutMs = 3000, errorMsg = 'Request timed out') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(errorMsg)), timeoutMs))
+  ]);
+}
+
+async function checkSupabaseHealth() {
+  if (!supabaseClient) {
+    setLeaderboardAvailability(false);
+    return false;
+  }
+  try {
+    const { error } = await withTimeout(
+      supabaseClient.from('leaderboard').select('score').limit(1),
+      3000,
+      'Supabase health check timeout'
+    );
+    if (error) {
+      console.warn("Supabase health check failed:", error.message);
+      setLeaderboardAvailability(false);
+      return false;
+    }
+    setLeaderboardAvailability(true);
+    return true;
+  } catch (e) {
+    console.warn("Supabase unreachable (may be paused due to inactivity):", e.message);
+    setLeaderboardAvailability(false);
+    return false;
+  }
+}
 
 async function initSupabase() {
-  if (typeof supabase === 'undefined') return;
+  if (typeof supabase === 'undefined') {
+    setLeaderboardAvailability(false);
+    return;
+  }
   try {
     let url, key;
     
     // 1. Try to fetch configuration from Vercel Serverless Function
     try {
-      const response = await fetch('/api/config');
+      const response = await fetchWithTimeout('/api/config', 2500);
       if (response.ok) {
         const config = await response.json();
         url = config.supabaseUrl;
@@ -345,7 +431,7 @@ async function initSupabase() {
     // 2. Fallback to local .env file
     if (!url || !key) {
       try {
-        const response = await fetch('.env');
+        const response = await fetchWithTimeout('.env', 1500);
         if (response.ok) {
           const text = await response.text();
           const env = {};
@@ -367,9 +453,13 @@ async function initSupabase() {
 
     if (url && key) {
       supabaseClient = supabase.createClient(url, key);
+      await checkSupabaseHealth();
+    } else {
+      setLeaderboardAvailability(false);
     }
   } catch (e) {
     console.error("Failed to initialize Supabase:", e);
+    setLeaderboardAvailability(false);
   }
 }
 
@@ -388,17 +478,22 @@ function saveLocalLeaderboard(name, score) {
 }
 
 async function getLeaderboard() {
-  if (supabaseClient) {
+  if (supabaseClient && isLeaderboardAvailable) {
     try {
-      const { data, error } = await supabaseClient
-        .from('leaderboard')
-        .select('name, score')
-        .order('score', { ascending: false })
-        .limit(100);
+      const { data, error } = await withTimeout(
+        supabaseClient
+          .from('leaderboard')
+          .select('name, score')
+          .order('score', { ascending: false })
+          .limit(100),
+        3000,
+        'Timeout fetching leaderboard'
+      );
       if (error) throw error;
-      return data;
+      if (data) return data;
     } catch (e) {
       console.warn("Supabase fetch failed, falling back to localStorage:", e);
+      setLeaderboardAvailability(false);
     }
   }
   return getLocalLeaderboard();
@@ -410,14 +505,19 @@ async function saveLeaderboard(name, score) {
   // Always save locally as backup
   saveLocalLeaderboard(name, score);
 
-  if (supabaseClient) {
+  if (supabaseClient && isLeaderboardAvailable) {
     try {
-      const { error } = await supabaseClient
-        .from('leaderboard')
-        .insert([{ name: name.trim(), score: parseInt(score) }]);
+      const { error } = await withTimeout(
+        supabaseClient
+          .from('leaderboard')
+          .insert([{ name: name.trim(), score: parseInt(score) }]),
+        3000,
+        'Timeout saving score'
+      );
       if (error) throw error;
     } catch (e) {
-      console.error("Supabase insert failed:", e);
+      console.warn("Supabase insert failed:", e);
+      setLeaderboardAvailability(false);
     }
   }
 }
@@ -426,6 +526,26 @@ async function renderLeaderboard() {
   leaderboardList.innerHTML = '<li class="leaderboard-item" style="justify-content: center;">Loading...</li>';
   const list = await getLeaderboard();
   leaderboardList.innerHTML = '';
+
+  if (!isLeaderboardAvailable) {
+    const noticeBanner = document.createElement('div');
+    noticeBanner.className = 'leaderboard-notice-banner';
+    noticeBanner.innerHTML = `
+      <div class="notice-badge">⚠️ Notice</div>
+      <div class="notice-title">Leaderboard is temporarily unavailable</div>
+      <div class="notice-sub">Online rankings are offline due to database inactivity. Displaying local scores from this device:</div>
+    `;
+    leaderboardList.appendChild(noticeBanner);
+  }
+
+  if (list.length === 0) {
+    const emptyLi = document.createElement('li');
+    emptyLi.className = 'leaderboard-empty-text';
+    emptyLi.textContent = 'No local scores recorded yet. Play a game to set a high score!';
+    leaderboardList.appendChild(emptyLi);
+    return;
+  }
+
   list.forEach((item, index) => {
     const li = document.createElement('li');
     li.className = 'leaderboard-item';
@@ -438,7 +558,7 @@ async function renderLeaderboard() {
     li.innerHTML = `
       <div class="leaderboard-rank-name">
         <span class="rank-badge ${badgeClass}">${index + 1}</span>
-        <span class="player-name">${item.name}</span>
+        <span class="player-name">${escapeHtml(item.name)}</span>
       </div>
       <span class="leaderboard-score">${item.score.toLocaleString()}</span>
     `;
@@ -775,12 +895,33 @@ function initEvents() {
     hideOverlay('settings');
   });
 
+  async function openLeaderboardScreen() {
+    soundManager.playBtnClick();
+    if (!isLeaderboardAvailable) {
+      showLeaderboardNotice();
+    }
+    await renderLeaderboard();
+    showScreen('leaderboard');
+  }
+
   const btnLeaderboardOpen = document.getElementById('btn-leaderboard-open');
   if (btnLeaderboardOpen) {
-    btnLeaderboardOpen.addEventListener('click', async () => {
-      soundManager.playBtnClick();
-      await renderLeaderboard();
-      showScreen('leaderboard');
+    btnLeaderboardOpen.addEventListener('click', openLeaderboardScreen);
+  }
+
+  const btnLeaderboardGameOver = document.getElementById('btn-leaderboard-gameover');
+  if (btnLeaderboardGameOver) {
+    btnLeaderboardGameOver.addEventListener('click', openLeaderboardScreen);
+  }
+
+  const toast = document.getElementById('leaderboard-toast');
+  if (toast) {
+    toast.addEventListener('click', () => {
+      toast.classList.remove('show');
+      if (toastTimeout) {
+        clearTimeout(toastTimeout);
+        toastTimeout = null;
+      }
     });
   }
 
@@ -827,9 +968,16 @@ function initEvents() {
 
   // Save Score
   document.getElementById('btn-save-score').addEventListener('click', async () => {
-    const name = playerNameInput.value || 'Player';
+    soundManager.playBtnClick();
+    const name = playerNameInput.value.trim() || 'Player';
     await saveLeaderboard(name, currentScore);
     playerNameInput.value = '';
+    if (!isLeaderboardAvailable) {
+      showLeaderboardNotice(
+        'Leaderboard is temporarily unavailable',
+        'Score saved locally on your device! Online rankings are offline due to inactivity.'
+      );
+    }
     await renderLeaderboard();
     showScreen('leaderboard');
   });
@@ -880,14 +1028,25 @@ function initEvents() {
 }
 
 // --- Initialize App ---
-window.addEventListener('DOMContentLoaded', async () => {
+function initApp() {
   canvas = document.getElementById('game-canvas');
-  ctx = canvas.getContext('2d');
+  if (canvas) {
+    ctx = canvas.getContext('2d');
+  }
 
-  await initSupabase();
+  // Bind UI events and show welcome screen immediately so Start button never waits on network/assets
+  initEvents();
+  showScreen('welcome');
 
-  preloadAssets(() => {
-    initEvents();
-    showScreen('welcome');
+  // Preload assets and initialize Supabase in the background
+  preloadAssets(() => {});
+  initSupabase().catch(err => {
+    console.warn("Supabase init error:", err);
   });
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
