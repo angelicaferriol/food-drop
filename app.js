@@ -325,39 +325,9 @@ function hideOverlay(overlayKey) {
 // --- Supabase Configuration ---
 let supabaseClient = null;
 let isLeaderboardAvailable = false;
-let toastTimeout = null;
 
 function setLeaderboardAvailability(available) {
   isLeaderboardAvailable = available;
-  const gameoverNote = document.getElementById('gameover-leaderboard-note');
-  if (gameoverNote) {
-    gameoverNote.classList.toggle('hidden', available);
-  }
-}
-
-function showLeaderboardNotice(message, subtitle) {
-  const toast = document.getElementById('leaderboard-toast');
-  if (!toast) return;
-
-  const titleEl = toast.querySelector('.toast-title');
-  const descEl = toast.querySelector('.toast-desc');
-
-  if (titleEl) {
-    titleEl.textContent = message || 'Leaderboard is temporarily unavailable';
-  }
-  if (descEl) {
-    descEl.textContent = subtitle || 'Online rankings are offline due to inactivity. Scores are saved locally!';
-  }
-
-  toast.classList.add('show');
-
-  if (toastTimeout) {
-    clearTimeout(toastTimeout);
-  }
-  toastTimeout = setTimeout(() => {
-    toast.classList.remove('show');
-    toastTimeout = null;
-  }, 4000);
 }
 
 function escapeHtml(str) {
@@ -897,9 +867,6 @@ function initEvents() {
 
   async function openLeaderboardScreen() {
     soundManager.playBtnClick();
-    if (!isLeaderboardAvailable) {
-      showLeaderboardNotice();
-    }
     await renderLeaderboard();
     showScreen('leaderboard');
   }
@@ -907,22 +874,6 @@ function initEvents() {
   const btnLeaderboardOpen = document.getElementById('btn-leaderboard-open');
   if (btnLeaderboardOpen) {
     btnLeaderboardOpen.addEventListener('click', openLeaderboardScreen);
-  }
-
-  const btnLeaderboardGameOver = document.getElementById('btn-leaderboard-gameover');
-  if (btnLeaderboardGameOver) {
-    btnLeaderboardGameOver.addEventListener('click', openLeaderboardScreen);
-  }
-
-  const toast = document.getElementById('leaderboard-toast');
-  if (toast) {
-    toast.addEventListener('click', () => {
-      toast.classList.remove('show');
-      if (toastTimeout) {
-        clearTimeout(toastTimeout);
-        toastTimeout = null;
-      }
-    });
   }
 
   document.getElementById('btn-leaderboard-play').addEventListener('click', () => {
@@ -972,12 +923,6 @@ function initEvents() {
     const name = playerNameInput.value.trim() || 'Player';
     await saveLeaderboard(name, currentScore);
     playerNameInput.value = '';
-    if (!isLeaderboardAvailable) {
-      showLeaderboardNotice(
-        'Leaderboard is temporarily unavailable',
-        'Score saved locally on your device! Online rankings are offline due to inactivity.'
-      );
-    }
     await renderLeaderboard();
     showScreen('leaderboard');
   });

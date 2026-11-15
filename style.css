@@ -163,14 +163,11 @@ body {
 
 .welcome-buttons {
   position: absolute;
-  bottom: 5%;
+  bottom: 9%;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  z-index: 10;
+  justify-content: center;
 }
 
 /* Image Buttons Styles */
@@ -781,17 +778,9 @@ input:checked+.slider:before {
 
 .gameover-controls {
   position: absolute;
-  bottom: 4.5%;
+  bottom: 8%;
   left: 2%;
   right: 2%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-}
-
-.gameover-buttons-row {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -845,115 +834,7 @@ input:checked+.slider:before {
   display: block;
 }
 
-/* Leaderboard Button & Unavailable Notice Styles */
-.btn-leaderboard-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5cqw;
-  padding: 1.2cqw 3.8cqw;
-  font-family: var(--font-family);
-  font-weight: 700;
-  font-size: 2.8cqw;
-  color: #4d2f12;
-  background: linear-gradient(180deg, #fff3d1 0%, #ffd97d 100%);
-  border: 2.5px solid #4d2f12;
-  border-radius: 50px;
-  box-shadow: 0 3px 0 #4d2f12;
-  cursor: pointer;
-  outline: none;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-  user-select: none;
-}
-
-.btn-leaderboard-toggle:hover {
-  background: linear-gradient(180deg, #fff7dc 0%, #ffe094 100%);
-}
-
-.btn-leaderboard-toggle:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #4d2f12;
-}
-
-.btn-leaderboard-toggle .btn-icon {
-  font-size: 3.1cqw;
-  line-height: 1;
-}
-
-.leaderboard-unavailable-tag {
-  font-family: var(--font-family);
-  font-size: 2.3cqw;
-  font-weight: 700;
-  color: #8a3b00;
-  background: rgba(255, 243, 205, 0.94);
-  border: 1.5px solid #d9822b;
-  border-radius: 20px;
-  padding: 2px 10px;
-  text-align: center;
-}
-
-.leaderboard-unavailable-tag.hidden {
-  display: none;
-}
-
-.leaderboard-toast {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translate(-50%, -140%);
-  z-index: 200;
-  width: 88%;
-  max-width: 440px;
-  background: #fffdf5;
-  border: 3px solid #4d2f12;
-  border-radius: 16px;
-  padding: 10px 14px;
-  box-shadow: 0 6px 16px rgba(77, 47, 18, 0.25), 0 3px 0 #4d2f12;
-  opacity: 0;
-  pointer-events: none;
-  cursor: pointer;
-  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s ease;
-}
-
-.leaderboard-toast.show {
-  transform: translate(-50%, 0);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.toast-body {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-family);
-}
-
-.toast-icon {
-  font-size: 1.5rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.toast-msg {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  text-align: left;
-}
-
-.toast-title {
-  font-weight: 800;
-  font-size: 0.95rem;
-  color: #c0392b;
-}
-
-.toast-desc {
-  font-weight: 600;
-  font-size: 0.78rem;
-  color: #6d4c2b;
-  line-height: 1.25;
-}
-
+/* Leaderboard Unavailable Notice Styles */
 .leaderboard-notice-banner {
   background: rgba(255, 243, 205, 0.95);
   border: 2px solid #e09b3d;
